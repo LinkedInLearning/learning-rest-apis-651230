@@ -4,7 +4,6 @@
   "name": "learning-rest-apis",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "app",
-  "workspaceFolder": "/workspace",
   "forwardPorts": [
     5432
   ],
