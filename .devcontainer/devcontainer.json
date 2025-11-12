@@ -4,6 +4,7 @@
   "name": "learning-rest-apis",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "app",
+  "workspaceFolder": "/workspaces/learning-rest-apis-651230",
   "forwardPorts": [
     5432
   ],
@@ -49,7 +50,7 @@
           {
             "name": "Local database",
             "driver": "PostgreSQL",
-            "server": "localhost",
+            "server": "db",
             "port": 5432,
             "database": "postgres",
             "username": "admin",

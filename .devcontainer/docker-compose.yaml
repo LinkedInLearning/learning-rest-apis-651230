@@ -8,7 +8,7 @@ services:
         IMAGE: python:3.13
 
     volumes:
-      - ..:/workspace:cached
+      - ..:/workspaces/learning-rest-apis-651230:cached
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
