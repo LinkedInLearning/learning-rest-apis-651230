@@ -4,7 +4,7 @@
   "name": "learning-rest-apis",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "app",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "forwardPorts": [
     5432
   ],
@@ -65,7 +65,7 @@
     }
   },
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "pip install -r requirements.txt && python init_db.py",
+  "postCreateCommand": "",
   "postAttachCommand": "uvicorn main:app --reload",
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode"
