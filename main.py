@@ -1,4 +1,6 @@
 import os
+import time
+from contextlib import asynccontextmanager
 from typing import List, Optional
 from datetime import date, datetime, timedelta
 from fastapi import FastAPI, HTTPException
@@ -19,7 +21,13 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session, relationship, DeclarativeBase
 from sqlalchemy import create_engine
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initialize_database()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 # Pydantic models for API responses
@@ -177,11 +185,6 @@ def wait_for_database(max_retries: int = 30) -> None:
 def initialize_database() -> None:
     wait_for_database()
     Base.metadata.create_all(engine)
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    initialize_database()
 
 
 @app.get("/")

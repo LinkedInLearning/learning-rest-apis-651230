@@ -1,5 +1,5 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.245.0/containers/python-3
+// For format details, see https://aka.ms/devcontainer.json. For config options, see:
+// https://containers.dev/implementors/json_reference/
 {
   "name": "learning-rest-apis",
   "dockerComposeFile": "docker-compose.yaml",
@@ -60,10 +60,13 @@
       }
     }
   },
-  // Seed the local database once the container is up. The script is idempotent.
-  "postStartCommand": "until pg_isready -h db -p 5432 -U admin; do sleep 1; done; python init_db.py",
-  // Note: postAttachCommand removed - it was blocking VS Code UI from loading.
+  // Install Python dependencies. Runs during Codespaces prebuilds so it's cached.
+  "updateContentCommand": "pip install --user --no-cache-dir -r requirements.txt",
+  // Seed the local database once on create. The script is idempotent; docker-compose
+  // depends_on.service_healthy guarantees the DB is ready before this runs.
+  "postCreateCommand": "python init_db.py",
+  // Don't attach VS Code until dependencies are installed.
+  "waitFor": "updateContentCommand",
   // Start the server manually: uvicorn main:app --reload
-  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode"
 }

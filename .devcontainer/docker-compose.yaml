@@ -1,11 +1,6 @@
 services:
   app:
-    build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
-      args:
-        # [Choice] Python version: 3, 3.8, 3.7, 3.6
-        IMAGE: python:3.13
+    image: mcr.microsoft.com/devcontainers/python:1-3.13-bookworm
 
     volumes:
       - ..:/workspaces/learning-rest-apis-651230:cached
