@@ -1,5 +1,5 @@
 import os
-import time
+import asyncio
 from contextlib import asynccontextmanager
 from typing import List, Optional
 from datetime import date, datetime, timedelta
@@ -20,10 +20,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, relationship, DeclarativeBase
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    initialize_database()
+    await initialize_database()
     yield
 
 
@@ -164,13 +165,16 @@ DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
 engine = create_engine(DATABASE_URI, echo=False, pool_pre_ping=True)
 
 
-def wait_for_database(max_retries: int = 30) -> None:
+async def wait_for_database(max_retries: int = 30) -> None:
+    def _try_connect():
+        with engine.connect() as connection:
+            connection.close()
+
     for attempt in range(max_retries):
         try:
-            with engine.connect() as connection:
-                connection.close()
+            await asyncio.to_thread(_try_connect)
             return
-        except Exception:
+        except OperationalError:
             if attempt == max_retries - 1:
                 raise
 
@@ -179,12 +183,12 @@ def wait_for_database(max_retries: int = 30) -> None:
                 f"Database not ready (attempt {attempt + 1}/{max_retries}). "
                 f"Retrying in {wait_time}s..."
             )
-            time.sleep(wait_time)
+            await asyncio.sleep(wait_time)
 
 
-def initialize_database() -> None:
-    wait_for_database()
-    Base.metadata.create_all(engine)
+async def initialize_database() -> None:
+    await wait_for_database()
+    await asyncio.to_thread(Base.metadata.create_all, engine)
 
 
 @app.get("/")
