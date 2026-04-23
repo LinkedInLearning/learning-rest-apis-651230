@@ -14,11 +14,6 @@
       "onAutoForward": "silent"
     }
   },
-  "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {
-      "version": "latest"
-    }
-  },
   // Configure tool-specific properties.
   "customizations": {
     // Configure properties specific to Codespaces.
@@ -65,8 +60,8 @@
       }
     }
   },
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "pip install -r requirements.txt && python init_db.py",
+  // Seed the local database once the container is up. The script is idempotent.
+  "postStartCommand": "until pg_isready -h db -p 5432 -U admin; do sleep 1; done; python init_db.py",
   // Note: postAttachCommand removed - it was blocking VS Code UI from loading.
   // Start the server manually: uvicorn main:app --reload
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.

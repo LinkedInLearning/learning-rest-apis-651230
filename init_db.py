@@ -1,53 +1,16 @@
 import os
-import time
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 # Load environment variables BEFORE importing main.py
 load_dotenv(".env")
-DBUSER = os.environ["DBUSER"]
-DBPASS = os.environ["DBPASS"]
-DBHOST = os.environ["DBHOST"]
-DBNAME = os.environ["DBNAME"]
-DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
-# Note: SSL not required for docker-compose internal connections
-
-# Create engine with connection retry logic BEFORE importing main.py
-max_retries = 30
-engine = None
-for attempt in range(max_retries):
-    try:
-        engine = create_engine(DATABASE_URI, echo=True, pool_pre_ping=True)
-        # Test the connection
-        with engine.connect() as conn:
-            conn.close()
-        print(f"Database connection successful on attempt {attempt + 1}")
-        break
-    except Exception as e:
-        if attempt < max_retries - 1:
-            wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
-            print(f"Database not ready (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time}s...")
-            time.sleep(wait_time)
-        else:
-            print(f"Failed to connect to database after {max_retries} attempts: {e}")
-            raise
-
-# Now import main.py which will use the engine that's already connected
-from main import Base, User, Book, Checkout
+from main import User, Book, Checkout, engine, initialize_database
 
 def init_database():
     """Initialize the database with sample data"""
-    
-    # Tables should already be created by main.py on import
-    # Just verify the connection works
-    try:
-        with engine.connect() as conn:
-            conn.close()
-    except Exception as e:
-        print(f"Database connection error: {e}")
-        raise
+
+    initialize_database()
     
     with Session(engine) as session:
         # Check if data already exists
