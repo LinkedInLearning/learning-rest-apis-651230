@@ -6,12 +6,17 @@
   "service": "app",
   "workspaceFolder": "/workspaces/learning-rest-apis-651230",
   "forwardPorts": [
-    5432
+    5432,
+    8000
   ],
   "portsAttributes": {
     "5432": {
       "label": "PostgreSQL port",
       "onAutoForward": "silent"
+    },
+    "8000": {
+      "label": "REST API",
+      "onAutoForward": "notify"
     }
   },
   // Configure tool-specific properties.
@@ -65,8 +70,13 @@
   // Seed the local database once on create. The script is idempotent; docker-compose
   // depends_on.service_healthy guarantees the DB is ready before this runs.
   "postCreateCommand": "python init_db.py",
+  // Start the REST API every time the codespace is attached. Runs in a visible
+  // integrated terminal so learners can see the output, Ctrl+C to stop, and
+  // restart with `uvicorn main:app --reload`.
+  "postAttachCommand": {
+    "server": "uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+  },
   // Don't attach VS Code until dependencies are installed.
   "waitFor": "updateContentCommand",
-  // Start the server manually: uvicorn main:app --reload
   "remoteUser": "vscode"
 }
