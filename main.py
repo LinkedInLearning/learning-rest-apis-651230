@@ -1,4 +1,6 @@
 import os
+import asyncio
+from contextlib import asynccontextmanager
 from typing import List, Optional
 from datetime import date, datetime, timedelta
 from fastapi import FastAPI, HTTPException
@@ -18,8 +20,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, relationship, DeclarativeBase
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await initialize_database()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 # Pydantic models for API responses
@@ -152,13 +161,34 @@ DBPASS = os.environ["DBPASS"]
 DBHOST = os.environ["DBHOST"]
 DBNAME = os.environ["DBNAME"]
 DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
-if DBHOST != "localhost":
-    DATABASE_URI += "?sslmode=require"
 
-engine = create_engine(DATABASE_URI, echo=True)
+engine = create_engine(DATABASE_URI, echo=False, pool_pre_ping=True)
 
-# Create tables in database
-Base.metadata.create_all(engine)
+
+async def wait_for_database(max_retries: int = 30) -> None:
+    def _try_connect():
+        with engine.connect() as connection:
+            connection.close()
+
+    for attempt in range(max_retries):
+        try:
+            await asyncio.to_thread(_try_connect)
+            return
+        except OperationalError:
+            if attempt == max_retries - 1:
+                raise
+
+            wait_time = min(attempt + 1, 5)
+            print(
+                f"Database not ready (attempt {attempt + 1}/{max_retries}). "
+                f"Retrying in {wait_time}s..."
+            )
+            await asyncio.sleep(wait_time)
+
+
+async def initialize_database() -> None:
+    await wait_for_database()
+    await asyncio.to_thread(Base.metadata.create_all, engine)
 
 
 @app.get("/")

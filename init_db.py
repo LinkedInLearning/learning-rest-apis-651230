@@ -1,29 +1,16 @@
 import os
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-# Import your models from main.py
-from main import Base, User, Book, Checkout
-
-# Load environment variables
+# Load environment variables BEFORE importing main.py
 load_dotenv(".env")
-DBUSER = os.environ["DBUSER"]
-DBPASS = os.environ["DBPASS"]
-DBHOST = os.environ["DBHOST"]
-DBNAME = os.environ["DBNAME"]
-DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
-if DBHOST != "localhost":
-    DATABASE_URI += "?sslmode=require"
-
-engine = create_engine(DATABASE_URI, echo=True)
+from main import User, Book, Checkout, engine, initialize_database
 
 def init_database():
     """Initialize the database with sample data"""
-    
-    # Create all tables
-    Base.metadata.create_all(engine)
+
+    initialize_database()
     
     with Session(engine) as session:
         # Check if data already exists

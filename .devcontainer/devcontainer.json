@@ -1,22 +1,22 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.245.0/containers/python-3
+// For format details, see https://aka.ms/devcontainer.json. For config options, see:
+// https://containers.dev/implementors/json_reference/
 {
   "name": "learning-rest-apis",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "app",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/learning-rest-apis-651230",
   "forwardPorts": [
-    5432
+    5432,
+    8000
   ],
   "portsAttributes": {
     "5432": {
       "label": "PostgreSQL port",
       "onAutoForward": "silent"
-    }
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {
-      "version": "latest"
+    },
+    "8000": {
+      "label": "REST API",
+      "onAutoForward": "notify"
     }
   },
   // Configure tool-specific properties.
@@ -43,6 +43,7 @@
       // Set *default* container specific settings.json values on container create.
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.useEnvFile": true,
         "python.linting.enabled": true,
         "python.testing.unittestEnabled": false,
         "python.testing.pytestEnabled": false,
@@ -50,7 +51,7 @@
           {
             "name": "Local database",
             "driver": "PostgreSQL",
-            "server": "localhost",
+            "server": "db",
             "port": 5432,
             "database": "postgres",
             "username": "admin",
@@ -64,9 +65,16 @@
       }
     }
   },
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "pip install -r requirements.txt && python init_db.py",
-  "postAttachCommand": "uvicorn main:app --reload",
-  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+  // Install Python dependencies. Runs during Codespaces prebuilds so it's cached.
+  "updateContentCommand": "pip install --user --no-cache-dir -r requirements.txt",
+  // Seed the local database once on create. The script is idempotent; docker-compose
+  // depends_on.service_healthy guarantees the DB is ready before this runs.
+  "postCreateCommand": "python init_db.py",
+  // Start the REST API every time the codespace is attached. Runs in a visible
+  // integrated terminal so learners can see the output, Ctrl+C to stop, and
+  // restart with `uvicorn main:app --reload`.
+  "postAttachCommand": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+  // Don't attach VS Code until dependencies are installed.
+  "waitFor": "updateContentCommand",
   "remoteUser": "vscode"
 }
