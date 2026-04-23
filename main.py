@@ -152,13 +152,28 @@ DBPASS = os.environ["DBPASS"]
 DBHOST = os.environ["DBHOST"]
 DBNAME = os.environ["DBNAME"]
 DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
-if DBHOST != "localhost":
-    DATABASE_URI += "?sslmode=require"
+# Note: SSL not required for docker-compose internal connections
+# Removed: if DBHOST != "localhost": DATABASE_URI += "?sslmode=require"
 
-engine = create_engine(DATABASE_URI, echo=True)
+# Create engine with connection retry logic
+engine = create_engine(DATABASE_URI, echo=True, pool_pre_ping=True)
 
-# Create tables in database
-Base.metadata.create_all(engine)
+# Attempt to create tables, with retry logic for slow database startup
+import time
+max_retries = 30
+for attempt in range(max_retries):
+    try:
+        Base.metadata.create_all(engine)
+        print("Database tables created successfully")
+        break
+    except Exception as e:
+        if attempt < max_retries - 1:
+            wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
+            print(f"Database not ready (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time}s...")
+            time.sleep(wait_time)
+        else:
+            print(f"Failed to create tables after {max_retries} attempts: {e}")
+            raise
 
 
 @app.get("/")

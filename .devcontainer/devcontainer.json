@@ -43,6 +43,7 @@
       // Set *default* container specific settings.json values on container create.
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.useEnvFile": true,
         "python.linting.enabled": true,
         "python.testing.unittestEnabled": false,
         "python.testing.pytestEnabled": false,
