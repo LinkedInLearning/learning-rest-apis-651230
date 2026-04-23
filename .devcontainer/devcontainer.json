@@ -66,7 +66,8 @@
   },
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "pip install -r requirements.txt && python init_db.py",
-  "postAttachCommand": "uvicorn main:app --reload",
+  // Note: postAttachCommand removed - it was blocking VS Code UI from loading.
+  // Start the server manually: uvicorn main:app --reload
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode"
 }

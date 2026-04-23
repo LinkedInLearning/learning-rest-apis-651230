@@ -14,8 +14,8 @@ DBPASS = os.environ["DBPASS"]
 DBHOST = os.environ["DBHOST"]
 DBNAME = os.environ["DBNAME"]
 DATABASE_URI = f"postgresql://{DBUSER}:{DBPASS}@{DBHOST}/{DBNAME}"
-if DBHOST != "localhost":
-    DATABASE_URI += "?sslmode=require"
+# Note: SSL not required for docker-compose internal connections
+# Removed: if DBHOST != "localhost": DATABASE_URI += "?sslmode=require"
 
 engine = create_engine(DATABASE_URI, echo=True)
 
