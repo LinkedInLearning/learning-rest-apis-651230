@@ -73,9 +73,7 @@
   // Start the REST API every time the codespace is attached. Runs in a visible
   // integrated terminal so learners can see the output, Ctrl+C to stop, and
   // restart with `uvicorn main:app --reload`.
-  "postAttachCommand": {
-    "server": "uvicorn main:app --reload --host 0.0.0.0 --port 8000"
-  },
+  "postAttachCommand": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
   // Don't attach VS Code until dependencies are installed.
   "waitFor": "updateContentCommand",
   "remoteUser": "vscode"
