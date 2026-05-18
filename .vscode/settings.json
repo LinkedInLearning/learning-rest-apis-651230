@@ -26,6 +26,6 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "rest-client.environmentVariables": {
-    "local": {}
+    "local": {baseURL": "https://some-random-name-8000.app.github.dev}
   }
 }
